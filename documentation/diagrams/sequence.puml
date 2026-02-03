@@ -1,0 +1,37 @@
+@startuml
+participant "Bouton Physique" as B
+participant "ESP32" as ESP
+participant "RTC DS3231" as RTC
+participant "Serveur Backend" as S
+participant "NTP Server" as NTP
+participant "Relais" as R
+participant "Cloche" as C
+
+== Initialisation (Startup) ==
+ESP -> NTP : getNetworkTime()
+NTP --> ESP : Heure UTC
+ESP -> RTC : adjustTime(localTime)
+ESP -> S : GET /api/schedule (REST)
+S --> ESP : JSON Planning
+
+== Boucle de fonctionnement ==
+loop Chaque seconde
+    ESP -> RTC : getNow()
+    RTC --> ESP : Heure locale
+    
+    alt Heure == Planning programmé OR Bouton pressé
+        ESP -> R : ON
+        R -> C : Contact fermé
+        note right of ESP : Sonnerie en cours
+        ESP -> R : OFF
+        R -> C : Contact ouvert
+        ESP -> S : Publier Log (MQTT)
+    end
+    
+    opt Message MQTT reçu (sync)
+        S -> ESP : Topic: smartbell/sync
+        ESP -> S : GET /api/schedule (REST)
+        S --> ESP : Nouveau planning
+    end
+end
+@enduml

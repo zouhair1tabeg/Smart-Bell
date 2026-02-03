@@ -1,0 +1,32 @@
+@startuml
+left to right direction
+
+actor "Administrateur" as Admin
+actor "ESP32" as ESP
+actor "Système de Temps\n(RTC / NTP)" as Time
+
+rectangle "Système SmartBell" {
+    usecase "S'authentifier" as UC1
+    usecase "Gérer le planning\n(Ajout / Modification / Suppression)" as UC2
+    usecase "Déclencher sonnerie manuelle" as UC3
+    usecase "Configurer profils\n(Hiver / Examen)" as UC4
+    usecase "Consulter les logs d'activité" as UC5
+    usecase "Recevoir alertes\n(déconnexion, erreur)" as UC6
+    usecase "Exécuter sonnerie automatique" as UC7
+}
+
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC4
+Admin --> UC5
+UC6 --> Admin
+
+ESP --> UC7
+Time --> UC7
+
+UC2 ..> UC1 : <<include>>
+UC3 ..> UC1 : <<include>>
+UC4 ..> UC1 : <<include>>
+UC5 ..> UC1 : <<include>>
+@enduml

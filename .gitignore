@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.pytest_cache/
+
+# Node/JS
+node_modules/
+dist/
+build/
+.npm/
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# System
+.DS_Store
+
+# Environment variables
+.env

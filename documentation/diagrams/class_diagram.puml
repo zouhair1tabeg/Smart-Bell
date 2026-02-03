@@ -1,0 +1,77 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+class User {
+    - id: int
+    - username: String
+    - passwordHash: String
+    - role: String
+}
+
+class ServeurBackend {
+    - database: DB
+    + authentifier(user, pass)
+    + programmerHoraire(planning)
+    + notifierMiseAJourMQTT()
+    + loggerEvenement(log)
+    + servirPlanningREST(): List<Planning>
+}
+
+class ESP32 {
+    - localSchedule: List<Planning>
+    - timezoneOffset: int
+    - isConnected: Boolean
+    + fetchScheduleREST()
+    + updateFirmwareOTA()
+    + handleMQTTMessage(topic, payload)
+    + verifierHoraire()
+    + actionnerRelais(duree)
+    + detecterAppuiBouton()
+}
+
+class RTC_DS3231 {
+    - currentTime: DateTime
+    + getNow(): DateTime
+    + adjustTime(DateTime)
+}
+
+class NTP_Client {
+    - ntpServer: String
+    + getNetworkTime(): DateTime
+}
+
+class Relais {
+    - pin: int
+    - etat: boolean
+    + on()
+    + off()
+}
+
+class PhysicalButton {
+    - pin: int
+    + isPressed(): boolean
+}
+
+class Planning {
+    - id: int
+    - heure: Time
+    - joursActifs: List<String>
+    - duree: int
+    - isHolidayException: boolean
+}
+
+class Log {
+    - timestamp: DateTime
+    - action: String
+    - source: String
+}
+
+User "1" -- "n" Planning : configure
+ServeurBackend "1" -- "n" Planning : gère
+ServeurBackend "1" -- "n" Log : stocke
+ServeurBackend "1" <..> ESP32 : MQTT / REST
+ESP32 "1" *-- "1" RTC_DS3231
+ESP32 "1" *-- "1" Relais
+ESP32 "1" *-- "1" NTP_Client
+ESP32 "1" *-- "1" PhysicalButton
+@enduml

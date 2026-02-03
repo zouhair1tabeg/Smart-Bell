@@ -1,0 +1,49 @@
+@startuml
+[*] --> Initialisation
+
+state Initialisation {
+    [*] --> VerificationMateriel
+    VerificationMateriel --> ConnexionWiFi
+    ConnexionWiFi --> SynchronisationNTP
+    SynchronisationNTP --> ChargementPlanning
+}
+
+Initialisation --> Veille : Prêt
+
+state Veille {
+    [*] --> Surveillance
+    Surveillance --> SynchronisationNTP : Intervalle 24h
+}
+
+Veille --> SonnerieActive : Horaire atteint / Bouton / MQTT
+Veille --> ModeAutonome : Wi-Fi perdu
+Veille --> MiseAJourOTA : Commande OTA
+Veille --> Erreur : Défaut RTC / Batterie
+
+state SonnerieActive {
+    [*] --> RelaisON
+    RelaisON --> RelaisOFF : Durée terminée
+}
+
+SonnerieActive --> Veille
+
+state MiseAJourOTA {
+    [*] --> Telechargement
+    Telechargement --> EcritureFlash
+    EcritureFlash --> Redemarrage
+}
+
+MiseAJourOTA --> Initialisation : Succès
+
+state ModeAutonome {
+    [*] --> UtilisationRTC_NVS
+    UtilisationRTC_NVS --> Veille : Wi-Fi rétabli
+}
+
+state Erreur {
+    [*] --> Diagnostic
+    Diagnostic --> Redemarrage
+}
+
+Redemarrage --> Initialisation
+@enduml

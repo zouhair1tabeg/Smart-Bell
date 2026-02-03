@@ -1,0 +1,39 @@
+@startuml
+node "Navigateur Admin" {
+    [Interface Web (React/Vue)]
+}
+
+node "Cloud / Internet" {
+    node "Serveur Backend" {
+        [API REST]
+        database "PostgreSQL" as DB
+        [Broker MQTT]
+    }
+    node "Infrastructure" {
+        [NTP Server]
+    }
+}
+
+node "Boîtier SmartBell" {
+    node "ESP32" {
+        [Firmware C++]
+    }
+    [RTC DS3231]
+    [Relais 5V]
+    [Bouton Physique]
+}
+
+node "Électricité" {
+    [Cloche / Sirène 220V]
+}
+
+[Interface Web (React/Vue)] -- [API REST] : HTTPS
+[API REST] -- DB : SQL
+[API REST] -- [Broker MQTT] : MQTT
+[Broker MQTT] -- [Firmware C++] : TLS/Wi-Fi
+[Firmware C++] -- [RTC DS3231] : I2C
+[Firmware C++] -- [Relais 5V] : GPIO
+[Firmware C++] -- [Bouton Physique] : GPIO (Interrupt)
+[Firmware C++] -- [NTP Server] : UDP/123
+[Relais 5V] -- [Cloche / Sirène 220V] : Contact sec
+@enduml

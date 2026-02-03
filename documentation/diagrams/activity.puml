@@ -1,0 +1,36 @@
+@startuml
+start
+:Initialisation matériel;
+:Connexion Wi-Fi;
+:Synchro Heure NTP & MAJ RTC;
+:Récupération planning (REST);
+
+repeat
+    :Lecture heure RTC;
+    :Calculer décalage DST (Eté/Hiver);
+
+    if (Commande MQTT OU Bouton Physique ?) then (Oui)
+        :Déclenchement immédiat (Priorité);
+    else (Non)
+        if (Heure (DST) == Planning ?) then (Oui)
+            if (Exception Vacances/Férié ?) then (Oui)
+                :Aucune action;
+            else (Non)
+                :Déclencher sonnerie;
+            endif
+        endif
+    endif
+
+    if (Sonnerie active ?) then (Oui)
+        :Activer relais;
+        :Attendre durée programmée;
+        :Désactiver relais;
+        :Envoi Log au serveur;
+    endif
+    
+    if (Besoin de resynchroniser (24h) ?) then (Oui)
+        :MAJ Heure via NTP;
+    endif
+repeat while (Système alimenté)
+stop
+@enduml
