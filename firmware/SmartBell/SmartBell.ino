@@ -1,15 +1,19 @@
 #include "config.h"
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
+#include <Preferences.h>
 #include <PubSubClient.h>
 #include <RTClib.h>
 #include <WiFi.h>
 #include <Wire.h>
 
 // Objets globaux
+Preferences preferences;
 RTC_DS3231 rtc;
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
+
+const char *topic_status = "smartbell/status";
 
 // Structure pour le planning (Diagramme de Classe)
 struct Planning {
@@ -81,8 +85,52 @@ void fetchScheduleREST() {
         }
       }
       Serial.println("Planning synchronisé via REST");
+
+      // Sauvegarde dans la base de données locale (NVS)
+      preferences.begin("smartbell", false);
+      preferences.putString("schedules", payload);
+      preferences.end();
+      Serial.println("Planning sauvegardé dans la mémoire locale");
     }
     http.end();
+  }
+}
+
+void loadScheduleFromNVS() {
+  preferences.begin("smartbell", true); // true = Read-only mode
+  String payload = preferences.getString("schedules", "[]");
+  preferences.end();
+
+  if (payload != "[]") {
+#if ARDUINOJSON_VERSION_MAJOR >= 7
+    JsonDocument doc;
+#else
+    DynamicJsonDocument doc(4096);
+#endif
+
+    DeserializationError error = deserializeJson(doc, payload);
+    if (!error) {
+      JsonArray arr = doc.as<JsonArray>();
+      scheduleCount = 0;
+      for (JsonObject obj : arr) {
+        if (scheduleCount < 20) {
+          localSchedule[scheduleCount].id = obj["id"] | 0;
+          localSchedule[scheduleCount].heure = obj["heure"] | "00:00:00";
+
+          JsonArray jours = obj["joursActifs"];
+          String joursStr = "";
+          for (JsonVariant j : jours) {
+            if (joursStr.length() > 0)
+              joursStr += ",";
+            joursStr += j.as<String>();
+          }
+          localSchedule[scheduleCount].joursActifs = joursStr;
+          localSchedule[scheduleCount].duree = obj["duree"] | 5;
+          scheduleCount++;
+        }
+      }
+      Serial.println("Planning chargé depuis la mémoire locale (NVS)");
+    }
   }
 }
 
@@ -175,12 +223,15 @@ void setup() {
   mqttClient.setCallback(callback);
 
   synchroniserRTC();
-  fetchScheduleREST();
+  loadScheduleFromNVS(); // Charger depuis la base de données locale d'abord
+  fetchScheduleREST();   // Puis tenter une mise à jour via WiFi
 }
 
 void loop() {
   if (!mqttClient.connected()) {
-    if (mqttClient.connect("SmartBellClient", mqtt_user, mqtt_pass)) {
+    if (mqttClient.connect("SmartBellClient", mqtt_user, mqtt_pass,
+                           topic_status, 1, true, "{\"status\":\"offline\"}")) {
+      mqttClient.publish(topic_status, "{\"status\":\"online\"}", true);
       mqttClient.subscribe(topic_trigger);
       mqttClient.subscribe(topic_sync);
     }

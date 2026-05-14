@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 import paho.mqtt.client as mqtt
 import json
 import os
@@ -10,15 +11,28 @@ MQTT_PASSWORD = os.getenv("MQTT_PASSWORD")
 TOPIC_TRIGGER = "smartbell/trigger"
 TOPIC_SYNC = "smartbell/sync"
 TOPIC_LOGS = "smartbell/logs"
+TOPIC_STATUS = "smartbell/status"
 
 client = mqtt.Client()
+
+arduino_connected = False
 
 def on_connect(client, userdata, flags, rc):
     print(f"Connected with result code {rc}")
     client.subscribe(TOPIC_LOGS)
+    client.subscribe(TOPIC_STATUS)
 
 def on_message(client, userdata, msg):
+    global arduino_connected
     print(f"Received message on {msg.topic}: {msg.payload.decode()}")
+    
+    if msg.topic == TOPIC_STATUS:
+        try:
+            payload = json.loads(msg.payload.decode())
+            arduino_connected = (payload.get("status") == "online")
+        except:
+            pass
+
     # Here we would normally save the log to the database
     # But for now we just acknowledge receipt
 

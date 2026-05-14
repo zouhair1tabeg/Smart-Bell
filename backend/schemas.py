@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import time, datetime
@@ -59,6 +60,7 @@ class DashboardStats(BaseModel):
     triggers_week: int
     active_schedules: int
     next_schedule: Optional[Planning] = None
+    esp32_connected: bool
 
 class SystemStatus(BaseModel):
     status: str  # "online" | "offline"

@@ -1,5 +1,8 @@
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI, Depends, HTTPException, status
+# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
+# pyrefly: ignore [missing-import]
 from sqlalchemy.orm import Session
 from typing import List
 import models, schemas, database, mqtt_service
@@ -167,7 +170,8 @@ def get_stats(db: Session = Depends(database.get_db)):
         "triggers_today": triggers_today,
         "triggers_week": triggers_week,
         "active_schedules": active_schedules,
-        "next_schedule": next_schedule
+        "next_schedule": next_schedule,
+        "esp32_connected": mqtt_service.arduino_connected
     }
 
 # Dashboard: État du système
@@ -189,6 +193,6 @@ def get_status(db: Session = Depends(database.get_db)):
         "status": "online",
         "active_schedules": active_schedules,
         "last_trigger": last_trigger,
-        "esp32_connected": False  # Would need MQTT status check for real value
+        "esp32_connected": mqtt_service.arduino_connected
     }
 

@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: smartbell_mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+
+  backend:
+    build: 
+      context: ./backend
+    container_name: smartbell_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - DATABASE_URL=sqlite:///./data/smartbell.db
+    volumes:
+      - backend_data:/app/data
+    depends_on:
+      - mosquitto
+
+  frontend:
+    build:
+      context: ./admin-frontend
+    container_name: smartbell_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
+  backend_data:

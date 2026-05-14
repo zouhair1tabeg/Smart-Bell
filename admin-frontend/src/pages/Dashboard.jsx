@@ -7,6 +7,7 @@ const Dashboard = () => {
         system: 'operational',
         lastTrigger: null,
         nextSchedule: null,
+        esp32Connected: false,
         loading: true
     });
     const [triggering, setTriggering] = useState(false);
@@ -34,6 +35,7 @@ const Dashboard = () => {
                 system: 'operational',
                 lastTrigger: statsData.last_trigger_timestamp, // Assuming stats endpoint provides this
                 nextSchedule: statsData.next_schedule,
+                esp32Connected: statsData.esp32_connected,
                 loading: false
             });
 
@@ -132,9 +134,9 @@ const Dashboard = () => {
                             <span className="info-value">{formatScheduleTime(status.nextSchedule)}</span>
                         </div>
                         <div className="info-item">
-                            <span className="info-label">État connexion:</span>
-                            <span className={`badge badge-${status.system === 'operational' ? 'success' : 'danger'}`}>
-                                {status.system === 'operational' ? '✓ Connecté' : '✗ Déconnecté'}
+                            <span className="info-label">État de l'Arduino:</span>
+                            <span className={`badge badge-${status.esp32Connected ? 'success' : 'danger'}`}>
+                                {status.esp32Connected ? '✓ Connecté' : '✗ Déconnecté'}
                             </span>
                         </div>
                     </div>
