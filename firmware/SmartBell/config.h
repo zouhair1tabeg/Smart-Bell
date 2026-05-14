@@ -18,11 +18,10 @@ static const char *topic_logs = "smartbell/logs";
 static const char *api_url = "http://192.168.0.140:8000/api/schedule";
 
 // Hardware PINs
-#define RELAY_PIN 26 // GPIO pour piloter le relais
-#define BUTTON_PIN                                                             \
-  27               // GPIO pour le bouton poussoir (Pull-up interne recommandé)
-#define SDA_PIN 21 // I2C SDA pour le RTC
-#define SCL_PIN 22 // I2C SCL pour le RTC
+#define RELAY_PIN 22  // GPIO pour piloter le relais
+#define BUTTON_PIN 23 // GPIO pour le bouton poussoir
+#define SDA_PIN 19    // I2C SDA pour le RTC
+#define SCL_PIN 18    // I2C SCL pour le RTC
 
 // Time settings
 static const char *ntp_server = "pool.ntp.org";

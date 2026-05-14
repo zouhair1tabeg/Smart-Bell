@@ -56,7 +56,7 @@ const Dashboard = () => {
         setMessage(null);
 
         try {
-            await api.post('/trigger', { source: 'manual' });
+            await api.post('/trigger', { action: 'ON', duration: 5 });
             setMessage({ type: 'success', text: '✅ Sonnerie déclenchée avec succès !' });
 
             // Refresh dashboard after trigger
