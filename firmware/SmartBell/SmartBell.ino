@@ -212,7 +212,7 @@ void setup() {
     Serial.println("Erreur RTC !");
   }
 
-  WiFi.begin(ssid, password);
+  WiFi.begin("TP-Link_4C82", "27084922");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -229,8 +229,17 @@ void setup() {
 
 void loop() {
   if (!mqttClient.connected()) {
-    if (mqttClient.connect("SmartBellClient", mqtt_user, mqtt_pass,
-                           topic_status, 1, true, "{\"status\":\"offline\"}")) {
+    bool connected = false;
+    if (String(mqtt_user).length() > 0) {
+      connected =
+          mqttClient.connect("SmartBellClient", mqtt_user, mqtt_pass,
+                             topic_status, 1, true, "{\"status\":\"offline\"}");
+    } else {
+      connected = mqttClient.connect("SmartBellClient", topic_status, 1, true,
+                                     "{\"status\":\"offline\"}");
+    }
+
+    if (connected) {
       mqttClient.publish(topic_status, "{\"status\":\"online\"}", true);
       mqttClient.subscribe(topic_trigger);
       mqttClient.subscribe(topic_sync);
@@ -238,7 +247,7 @@ void loop() {
   }
   mqttClient.loop();
 
-  detecterAppuiBouton();
+  // detecterAppuiBouton(); // Désactivé temporairement pour éviter les interférences
   verifierHoraire();
 
   delay(1000);
